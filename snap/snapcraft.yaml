@@ -1,0 +1,48 @@
+name: polymorphable
+version: 'git'
+summary: Laurelia's Polymorphable Citizen
+description: |
+  The flare engine with the "Laurelia's Polymorphable Citizen" mod
+grade: stable
+confinement: strict
+
+apps:
+  polymorphable:
+    command: desktop-launch $SNAP/usr/games/flare --data-path=$SNAP --mods=polymorphable
+    plugs: [ unity7, joystick, pulseaudio, opengl ]
+
+parts:
+  engine:
+    plugin: cmake
+    source: https://github.com/clintbellanger/flare-engine.git
+    override-pull: |
+      snapcraftctl pull
+      git checkout `git describe --tags --abbrev=0`
+    configflags: [ -DCMAKE_INSTALL_PREFIX=/usr ]
+    build-packages:
+      - make
+      - cmake
+      - g++
+      - libsdl2-dev
+      - libsdl2-image-dev
+      - libsdl2-mixer-dev
+      - libsdl2-ttf-dev
+    stage-packages:
+      - libsdl2-2.0-0
+      - libsdl2-image-2.0-0
+      - libsdl2-mixer-2.0-0
+      - libsdl2-ttf-2.0-0
+      - libgl1-mesa-glx
+    override-build: |
+      snapcraftctl build
+      cp -R ../src/mods/ $SNAPCRAFT_PART_INSTALL
+      cp ../src/COPYING $SNAPCRAFT_PART_INSTALL
+    after: [ desktop-glib-only, mod ]
+
+  mod:
+    plugin: dump
+    source: .
+    stage:
+      - -art_src/*
+      - -tiled/*
+      - -snap
